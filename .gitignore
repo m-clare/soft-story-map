@@ -1,0 +1,11 @@
+nextjs/node_modules
+nextjs/.next
+nextjs/public
+nextjs/.log
+
+db/.log
+db/deprecated/*
+db/data/*
+
+*.pmtiles
+*.env
