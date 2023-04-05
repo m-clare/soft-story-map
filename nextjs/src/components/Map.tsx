@@ -70,6 +70,7 @@ function Map() {
     });
 
     map.addControl(new maplibregl.NavigationControl({}), "bottom-left");
+
     map.on("load", function () {
       map.resize;
       map.addSource("allRetrofits", {
@@ -78,16 +79,46 @@ function Map() {
           type: "FeatureCollection",
           features: allRetrofits.features,
         },
+        cluster: true,
+        clusterMaxZoom: 20,
+        clusterRadius: 50,
       });
-      allRetrofits.features.forEach(function (marker) {
-        new maplibregl.Marker()
-          .setLngLat(marker.geometry.coordinates)
-          .addTo(map);
-      });
-    });
 
-    const popup = new maplibregl.Popup({
-      closeOnClick: true,
+      map.addLayer({
+        id: "test",
+        type: "circle",
+        source: "allRetrofits",
+        filter: ["has", "point_count"],
+        minZoom: 5,
+        paint: {
+          "circle-color": [
+            "step",
+            ["get", "point_count"],
+            "#51bbd6",
+            20,
+            "#f1f075",
+            50,
+            "#f28cb1",
+          ],
+          "circle-radius": [
+            "step",
+            ["get", "point_count"],
+            1,
+            5,
+            5,
+            10,
+            20,
+            20,
+            30,
+            30,
+            40,
+          ],
+        },
+      });
+
+      const popup = new maplibregl.Popup({
+        closeOnClick: true,
+      });
     });
 
     mapRef.current = map;
@@ -122,16 +153,16 @@ function Map() {
   }, []);
 
   useEffect(() => {
-    let map = mapRef.current;
-    let initStyle = async (map) => {
+    let initStyle = async () => {
       if (mapRef.current) {
+        let map = mapRef.current;
         let style = await vectorStyle(mapFile);
         map.setStyle(style);
         return style;
       }
     };
 
-    initStyle(map);
+    initStyle();
   }, []);
 
   return (
