@@ -38,7 +38,6 @@ function Map() {
   let mapContainerRef = useRef<HTMLDivElement>(null);
   const [showAttributes, setShowAttributes] = useState<boolean>(false);
   const mapFile = new PMTiles(process.env.NEXT_PUBLIC_URL + "/so_cal.pmtiles");
-  console.log(mapFile);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
   const showAttributesRef = useRef(showAttributes);
@@ -59,8 +58,8 @@ function Map() {
       container: mapContainerRef.current!,
       zoom: 14,
       center: [-118.243683, 34.052235],
-      bounds: [-118.951721, 32.75004, -117.646374, 34.823302],
-      pitch: 45,
+      maxBounds: [-118.951721, 32.75004, -117.646374, 34.823302],
+      pitch: 30,
       bearing: -0.44200633613297663,
       minZoom: 5,
       style: {
@@ -71,7 +70,21 @@ function Map() {
     });
 
     map.addControl(new maplibregl.NavigationControl({}), "bottom-left");
-    map.on("load", map.resize);
+    map.on("load", function () {
+      map.resize;
+      map.addSource("allRetrofits", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: allRetrofits.features,
+        },
+      });
+      allRetrofits.features.forEach(function (marker) {
+        new maplibregl.Marker()
+          .setLngLat(marker.geometry.coordinates)
+          .addTo(map);
+      });
+    });
 
     const popup = new maplibregl.Popup({
       closeOnClick: true,
@@ -119,38 +132,6 @@ function Map() {
     };
 
     initStyle(map);
-    /* map.on("load", function () {
-     *   map.resize; */
-    /* map.addSource("retrofits", {
-     *   type: "geojson",
-     *   data: {
-     *     type: "FeatureCollection",
-     *     features: retrofitFootprints.features,
-     *   },
-     * }); */
-    /* map.addSource("allRetrofits", {
-     *   type: "geojson",
-     *   data: {
-     *     type: "FeatureCollection",
-     *     features: allRetrofits.features,
-     *   }
-     * }) */
-    /* map.addLayer({
-     *   id: "retrofits",
-     *   type: "fill",
-     *   source: "retrofits",
-     *   minzoom: 8,
-     *   paint: {
-     *     "fill-color": "#00ff00",
-     *     "fill-opacity": 0.8,
-     *   },
-     * }); */
-    /* missingRetrofits.features.forEach(function (marker) {
-     *   new maplibregl.Marker()
-     *     .setLngLat(marker.geometry.coordinates)
-     *     .addTo(map);
-     * }); */
-    /* }); */
   }, []);
 
   return (
