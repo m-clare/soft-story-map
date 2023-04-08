@@ -8,46 +8,10 @@ import retrofitFootprints from "../assets/la_buildings_retrofit_footprints.json"
 import allRetrofits from "../assets/retrofit_addresses.json";
 import missingRetrofits from "../assets/unretrofit_addresses.json";
 
-const vectorStyle = async (file: PMTiles): Promise<any> => {
-  let header = await file.getHeader();
-  let metadata = await file.getMetadata();
-  let layers: any[] = [];
-
-  const newStyle = maptiler3dGl;
-
-  const bounds = [header.minLon, header.minLat, header.maxLon, header.maxLat];
-
-  return {
-    ...newStyle,
-    version: 8,
-    sources: {
-      openmaptiles: {
-        type: "vector",
-        tiles: ["pmtiles://" + file.source.getKey() + "/{z}/{x}/{y}"],
-        minzoom: header.minZoom,
-        maxzoom: header.maxZoom,
-        bounds: bounds,
-      },
-    },
-    glyphs: process.env.NEXT_PUBLIC_URL + "/{fontstack}/{range}.pbf",
-    layers: newStyle.layers,
-  };
-};
-
 function Map() {
-  let mapContainerRef = useRef<HTMLDivElement>(null);
-  const [showAttributes, setShowAttributes] = useState<boolean>(false);
-  const mapFile = new PMTiles(process.env.NEXT_PUBLIC_URL + "/so_cal.pmtiles");
+  const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-
-  const showAttributesRef = useRef(showAttributes);
-  useEffect(() => {
-    showAttributesRef.current = showAttributes;
-  });
-
-  const toggleShowAttributes = () => {
-    setShowAttributes(!showAttributes);
-  };
+  const mapFile = new PMTiles(process.env.NEXT_PUBLIC_URL + "/so_cal.pmtiles");
 
   useEffect(() => {
     let protocol = new Protocol();
@@ -64,15 +28,23 @@ function Map() {
       minZoom: 5,
       style: {
         version: 8,
-        sources: {},
-        layers: [],
+        sources: {
+          openmaptiles: {
+            "type": "vector",
+            "tiles": ["pmtiles://" + mapFile.source.getKey() + "/{z}/{x}/{y}"],
+          }
+        },
+        layers: maptiler3dGl.layers,
+        glyphs: process.env.NEXT_PUBLIC_URL + "/{fontstack}/{range}.pbf",
       },
     });
+    mapRef.current = map;
 
     map.addControl(new maplibregl.NavigationControl({}), "bottom-left");
 
     map.on("load", function () {
       map.resize;
+
       map.addSource("allRetrofits", {
         type: "geojson",
         data: {
@@ -80,7 +52,7 @@ function Map() {
           features: allRetrofits.features,
         },
         cluster: true,
-        clusterMaxZoom: 20,
+        clusterMaxZoom: 16,
         clusterRadius: 50,
       });
 
@@ -115,54 +87,11 @@ function Map() {
           ],
         },
       });
-
-      const popup = new maplibregl.Popup({
-        closeOnClick: true,
-      });
-    });
-
-    mapRef.current = map;
-
-    map.on("click", (e) => {
-      if (!showAttributesRef.current) {
-        popup.remove();
-        return;
-      }
-      var bbox = e.point;
-
-      var features = map.queryRenderedFeatures(bbox);
-      // ignore basemap
-      features = features.filter(
-        (feature) => feature.source !== "openmaptiles"
-      );
-
-      map.getCanvas().style.cursor = features.length ? "pointer" : "";
-
-      if (!features.length) {
-        popup.remove();
-      } else {
-        popup.setHTML(`<h1>Hello!</h1>`);
-        popup.setLngLat(e.lngLat);
-        popup.addTo(map);
-      }
     });
 
     return () => {
-      map.remove();
+      map.remove()
     };
-  }, []);
-
-  useEffect(() => {
-    let initStyle = async () => {
-      if (mapRef.current) {
-        let map = mapRef.current;
-        let style = await vectorStyle(mapFile);
-        map.setStyle(style);
-        return style;
-      }
-    };
-
-    initStyle();
   }, []);
 
   return (

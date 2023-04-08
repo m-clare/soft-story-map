@@ -661,7 +661,6 @@ export const maptiler3dGl = {
       source: "openmaptiles",
       "source-layer": "place",
       minzoom: 8,
-      maxzoom: 14,
       filter: [
         "all",
         ["==", "$type", "Point"],
@@ -693,7 +692,6 @@ export const maptiler3dGl = {
       source: "openmaptiles",
       "source-layer": "place",
       minzoom: 14,
-      maxzoom: 14,
       filter: [
         "all",
         ["==", "$type", "Point"],
@@ -724,7 +722,6 @@ export const maptiler3dGl = {
       type: "symbol",
       source: "openmaptiles",
       "source-layer": "place",
-      maxzoom: 16,
       filter: ["all", ["==", "$type", "Point"], ["==", "class", "city"]],
       layout: {
         "text-field": "{name_en}",
