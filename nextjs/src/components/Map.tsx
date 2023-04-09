@@ -52,92 +52,91 @@ function Map() {
       map.addSource("retrofitFootprints", {
         type: "geojson",
         data: {
-          ...retrofitFootprints
+          ...retrofitFootprints,
         },
       });
 
-      map.addSource("allRetrofits", {
-        type: "geojson",
-        data: {
-          ...allRetrofits
+      map.addLayer(
+        {
+          id: "matched-footprints",
+          type: "fill",
+          source: "retrofitFootprints",
+          minzoom: 8,
+          paint: {
+            "fill-color": "#24939e",
+            "fill-opacity": 0.8,
+          },
         },
-        cluster: true,
-        clusterMaxZoom: 18,
-        clusterRadius: 50,
+        "building-3d"
+      );
+
+      const sourceInfo = [
+        {
+          name: "allRetrofits",
+          data: allRetrofits,
+          layerId: "all-retrofits",
+          color: "#2ab7ca",
+        },
+        {
+          name: "missingRetrofits",
+          data: missingRetrofits,
+          layerId: "missing-retrofits",
+          color: "#fe4a49",
+        },
+        {
+          name: "verificationRetrofits",
+          data: verificationRetrofits,
+          layerId: "verification-retrofits",
+          color: "#fed766",
+        },
+      ];
+
+      sourceInfo.forEach((source) => {
+        map.addSource(source.name, {
+          type: "geojson",
+          data: {
+            ...source.data,
+          },
+          cluster: true,
+          clusterRadius: 50,
+        });
       });
 
-      map.addSource("missingRetrofits", {
-        type: "geojson",
-        data: {
-          ...missingRetrofits
-        },
-      })
+      sourceInfo.forEach((source) => {
+        map.addLayer({
+          id: `${source.layerId}-cluster`,
+          type: "circle",
+          source: source.name,
+          filter: ["has", "point_count"],
+          minzoom: 5,
+          paint: {
+            "circle-color": source.color,
+            "circle-radius": [
+              "step",
+              ["get", "point_count"],
+              1,
+              5,
+              10,
+              10,
+              20,
+              20,
+              30,
+              100,
+              30,
+            ],
+          },
+        });
 
-      map.addSource("verificationRetrofits", {
-        type: "geojson",
-        data: {
-          ...verificationRetrofits
-        }
-      })
-
-      map.addLayer({
-        id: "matched-footprints",
-        type: "fill",
-        source: "retrofitFootprints",
-        minzoom: 8,
-        paint: {
-          "fill-color": "#24939e",
-          "fill-opacity": 0.8,
-        },
-      }, "building-3d");
-
-      map.addLayer({
-        id: "all-retrofits",
-        type: "circle",
-        source: "allRetrofits",
-        filter: ["has", "point_count"],
-        minzoom: 5,
-        maxzoom: 18,
-        paint: {
-          "circle-color": "#2ab7ca",
-          "circle-radius": [
-            "step",
-            ["get", "point_count"],
-            1,
-            5,
-            10,
-            10,
-            20,
-            20,
-            30,
-            30,
-            40,
-          ],
-        },
-      });
-
-      map.addLayer({
-        id: "missing-retrofits",
-        type: "circle",
-        source: "missingRetrofits",
-        minzoom: 10,
-        maxzoom: 18,
-        paint: {
-          "circle-color": "#fe4a49",
-          "circle-radius": 5,
-        },
-      });
-
-      map.addLayer({
-        id: "verified-noretrofits",
-        type: "circle",
-        source: "verificationRetrofits",
-        minzoom: 10,
-        maxzoom: 18,
-        paint: {
-          "circle-color": "#fed766",
-          "circle-radius": 5,
-        },
+        map.addLayer({
+          id: `${source.layerId}`,
+          type: "circle",
+          source: source.name,
+          filter: ["!=", "cluster", true],
+          paint: {
+            "circle-color": source.color,
+            "circle-radius": 5,
+          },
+        });
       });
     });
 
