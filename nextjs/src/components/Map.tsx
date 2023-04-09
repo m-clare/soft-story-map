@@ -7,6 +7,7 @@ import { maptiler3dGl } from "@/styles/maptiler-3d-gl";
 import retrofitFootprints from "../assets/la_buildings_retrofit_footprints.json";
 import allRetrofits from "../assets/retrofit_addresses.json";
 import missingRetrofits from "../assets/unretrofit_addresses.json";
+import verificationRetrofits from "../assets/retrofit_verification_addresses.json";
 
 function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -26,13 +27,16 @@ function Map() {
       pitch: 30,
       bearing: -0.44200633613297663,
       minZoom: 5,
+      maxZoom: 17.9,
       style: {
         version: 8,
         sources: {
           openmaptiles: {
-            "type": "vector",
-            "tiles": ["pmtiles://" + mapFile.source.getKey() + "/{z}/{x}/{y}"],
-          }
+            type: "vector",
+            tiles: ["pmtiles://" + mapFile.source.getKey() + "/{z}/{x}/{y}"],
+            minzoom: 0,
+            maxzoom: 14,
+          },
         },
         layers: maptiler3dGl.layers,
         glyphs: process.env.NEXT_PUBLIC_URL + "/{fontstack}/{range}.pbf",
@@ -45,39 +49,63 @@ function Map() {
     map.on("load", function () {
       map.resize;
 
+      map.addSource("retrofitFootprints", {
+        type: "geojson",
+        data: {
+          ...retrofitFootprints
+        },
+      });
+
       map.addSource("allRetrofits", {
         type: "geojson",
         data: {
-          type: "FeatureCollection",
-          features: allRetrofits.features,
+          ...allRetrofits
         },
         cluster: true,
-        clusterMaxZoom: 16,
+        clusterMaxZoom: 18,
         clusterRadius: 50,
       });
 
+      map.addSource("missingRetrofits", {
+        type: "geojson",
+        data: {
+          ...missingRetrofits
+        },
+      })
+
+      map.addSource("verificationRetrofits", {
+        type: "geojson",
+        data: {
+          ...verificationRetrofits
+        }
+      })
+
       map.addLayer({
-        id: "test",
+        id: "matched-footprints",
+        type: "fill",
+        source: "retrofitFootprints",
+        minzoom: 8,
+        paint: {
+          "fill-color": "#24939e",
+          "fill-opacity": 0.8,
+        },
+      }, "building-3d");
+
+      map.addLayer({
+        id: "all-retrofits",
         type: "circle",
         source: "allRetrofits",
         filter: ["has", "point_count"],
-        minZoom: 5,
+        minzoom: 5,
+        maxzoom: 18,
         paint: {
-          "circle-color": [
-            "step",
-            ["get", "point_count"],
-            "#51bbd6",
-            20,
-            "#f1f075",
-            50,
-            "#f28cb1",
-          ],
+          "circle-color": "#2ab7ca",
           "circle-radius": [
             "step",
             ["get", "point_count"],
             1,
             5,
-            5,
+            10,
             10,
             20,
             20,
@@ -87,10 +115,34 @@ function Map() {
           ],
         },
       });
+
+      map.addLayer({
+        id: "missing-retrofits",
+        type: "circle",
+        source: "missingRetrofits",
+        minzoom: 10,
+        maxzoom: 18,
+        paint: {
+          "circle-color": "#fe4a49",
+          "circle-radius": 5,
+        },
+      });
+
+      map.addLayer({
+        id: "verified-noretrofits",
+        type: "circle",
+        source: "verificationRetrofits",
+        minzoom: 10,
+        maxzoom: 18,
+        paint: {
+          "circle-color": "#fed766",
+          "circle-radius": 5,
+        },
+      });
     });
 
     return () => {
-      map.remove()
+      map.remove();
     };
   }, []);
 
