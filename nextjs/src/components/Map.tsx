@@ -4,8 +4,8 @@ import { PMTiles, Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "@/styles/Home.module.css";
 import { maptiler3dGl } from "@/styles/maptiler-3d-gl";
-import retrofitFootprints from "../assets/la_buildings_retrofit_footprints.json";
-import allRetrofits from "../assets/retrofit_addresses.json";
+import retrofitFootprints from "../assets/230409_retrofit_footprints.json";
+import allRetrofits from "../assets/230409_retrofit_addresses.json";
 import missingRetrofits from "../assets/unretrofit_addresses.json";
 import verificationRetrofits from "../assets/retrofit_verification_addresses.json";
 
@@ -26,7 +26,7 @@ function Map() {
       maxBounds: [-118.951721, 32.75004, -117.646374, 34.823302],
       pitch: 30,
       bearing: -0.44200633613297663,
-      minZoom: 5,
+      minZoom: 11,
       maxZoom: 17.9,
       style: {
         version: 8,
@@ -115,17 +115,32 @@ function Map() {
               "step",
               ["get", "point_count"],
               1,
-              5,
+              1,
+              10,
               10,
               10,
               20,
               20,
+              25,
               30,
               100,
-              30,
+              35,
             ],
           },
         });
+
+        map.addLayer({
+          id: `${source.layerId}-cluster-count`,
+          type: 'symbol',
+          source: source.name,
+          filter: ['has', 'point_count'],
+          layout: {
+            'text-field': '{point_count_abbreviated}',
+            'text-font': ["Klokantech Noto Sans Regular"],
+            'text-size': 12,
+          }
+
+        })
 
         map.addLayer({
           id: `${source.layerId}`,
