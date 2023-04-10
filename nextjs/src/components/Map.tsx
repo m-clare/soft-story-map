@@ -5,9 +5,13 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "@/styles/Home.module.css";
 import { maptiler3dGl } from "@/styles/maptiler-3d-gl";
 import retrofitFootprints from "../assets/230409_retrofit_footprints.json";
-import allRetrofits from "../assets/230409_retrofit_addresses.json";
-import missingRetrofits from "../assets/unretrofit_addresses.json";
-import verificationRetrofits from "../assets/retrofit_verification_addresses.json";
+import allBuildings from "../assets/allBuildings.json";
+
+const colors = {
+  retrofit: "#2ab7ca",
+  unretrofit: "#fe4a49",
+  retrofitNR: "#fed766",
+};
 
 function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -46,13 +50,52 @@ function Map() {
 
     map.addControl(new maplibregl.NavigationControl({}), "bottom-left");
 
+    const retrofit = ["==", ["get", "retrofit_status"], "retrofit"];
+    const unretrofit = ["==", ["get", "retrofit_status"], "not retrofit"];
+    const retrofitNR = [
+      "==",
+      ["get", "retrofit_status"],
+      "retrofit not required",
+    ];
+
     map.on("load", function () {
       map.resize;
 
       map.addSource("retrofitFootprints", {
         type: "geojson",
-        data: {
-          ...retrofitFootprints,
+        data: retrofitFootprints,
+      });
+
+      map.addSource("allBuildings", {
+        type: "geojson",
+        data: allBuildings,
+        cluster: true,
+        clusterRadius: 50,
+        clusterProperties: {
+          retrofit: ["+", ["case", retrofit, 1, 0]],
+          unretrofit: ["+", ["case", unretrofit, 1, 0]],
+          retrofitNR: ["+", ["case", retrofitNR, 1, 0]],
+        },
+      });
+
+      map.addLayer({
+        id: "building-circle",
+        type: "circle",
+        source: "allBuildings",
+        filter: ["!=", "cluster", true],
+        paint: {
+          "circle-color": [
+            "case",
+            retrofit,
+            colors.retrofit,
+            unretrofit,
+            colors.unretrofit,
+            retrofitNR,
+            colors.retrofitNR,
+            "#ffffff",
+          ],
+          "circle-opacity": 0.9,
+          "circle-radius": 8,
         },
       });
 
@@ -69,90 +112,6 @@ function Map() {
         },
         "building-3d"
       );
-
-      const sourceInfo = [
-        {
-          name: "allRetrofits",
-          data: allRetrofits,
-          layerId: "all-retrofits",
-          color: "#2ab7ca",
-        },
-        {
-          name: "missingRetrofits",
-          data: missingRetrofits,
-          layerId: "missing-retrofits",
-          color: "#fe4a49",
-        },
-        {
-          name: "verificationRetrofits",
-          data: verificationRetrofits,
-          layerId: "verification-retrofits",
-          color: "#fed766",
-        },
-      ];
-
-      sourceInfo.forEach((source) => {
-        map.addSource(source.name, {
-          type: "geojson",
-          data: {
-            ...source.data,
-          },
-          cluster: true,
-          clusterRadius: 50,
-        });
-      });
-
-      sourceInfo.forEach((source) => {
-        map.addLayer({
-          id: `${source.layerId}-cluster`,
-          type: "circle",
-          source: source.name,
-          filter: ["has", "point_count"],
-          minzoom: 5,
-          paint: {
-            "circle-color": source.color,
-            "circle-radius": [
-              "step",
-              ["get", "point_count"],
-              1,
-              1,
-              10,
-              10,
-              10,
-              20,
-              20,
-              25,
-              30,
-              100,
-              35,
-            ],
-          },
-        });
-
-        map.addLayer({
-          id: `${source.layerId}-cluster-count`,
-          type: 'symbol',
-          source: source.name,
-          filter: ['has', 'point_count'],
-          layout: {
-            'text-field': '{point_count_abbreviated}',
-            'text-font': ["Klokantech Noto Sans Regular"],
-            'text-size': 12,
-          }
-
-        })
-
-        map.addLayer({
-          id: `${source.layerId}`,
-          type: "circle",
-          source: source.name,
-          filter: ["!=", "cluster", true],
-          paint: {
-            "circle-color": source.color,
-            "circle-radius": 5,
-          },
-        });
-      });
     });
 
     return () => {
