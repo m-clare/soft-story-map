@@ -1,6 +1,8 @@
 import { useRef, useEffect, useState } from "react";
 import maplibregl from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
+import { ExpressionSpecification, LayerSpecification } from "maplibre-gl";
+import { Position, Point } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "@/styles/Home.module.css";
 import { maptiler3dGl } from "@/styles/maptiler-3d-gl";
@@ -13,9 +15,8 @@ const colors = {
   retrofitNR: "#fed766",
 };
 
-function getFormattedInfo(props) {
+function getFormattedInfo(props: any) {
   if (props.retrofit_status === "retrofit") {
-    console.log(props);
     const typedProps = {
       ...props,
       issue_date: Date.parse(props.issue_date),
@@ -38,7 +39,7 @@ function getFormattedInfo(props) {
   return null;
 }
 
-function createDonutChart(props) {
+function createDonutChart(props: any) {
   const offsets = [];
   const counts = [props.retrofit, props.unretrofit, props.retrofitNR];
   let total = 0;
@@ -103,7 +104,13 @@ function createDonutChart(props) {
   return el.firstChild;
 }
 
-function donutSegment(start, end, r, r0, color) {
+function donutSegment(
+  start: number,
+  end: number,
+  r: number,
+  r0: number,
+  color: string
+) {
   if (end - start === 1) end -= 0.00001;
   const a0 = 2 * Math.PI * (start - 0.25);
   const a1 = 2 * Math.PI * (end - 0.25);
@@ -172,7 +179,7 @@ function Map() {
             maxzoom: 14,
           },
         },
-        layers: maptiler3dGl.layers,
+        layers: maptiler3dGl.layers as LayerSpecification[],
         glyphs: process.env.NEXT_PUBLIC_URL + "/{fontstack}/{range}.pbf",
       },
     });
@@ -180,13 +187,21 @@ function Map() {
 
     map.addControl(new maplibregl.NavigationControl({}), "bottom-left");
 
-    const retrofit = ["==", ["get", "retrofit_status"], "retrofit"];
-    const unretrofit = ["==", ["get", "retrofit_status"], "not retrofit"];
+    const retrofit = [
+      "==",
+      ["get", "retrofit_status"],
+      "retrofit",
+    ] as ExpressionSpecification;
+    const unretrofit = [
+      "==",
+      ["get", "retrofit_status"],
+      "not retrofit",
+    ] as ExpressionSpecification;
     const retrofitNR = [
       "==",
       ["get", "retrofit_status"],
       "retrofit not required",
-    ];
+    ] as ExpressionSpecification;
 
     map.on("load", function () {
       map.resize;
@@ -240,36 +255,20 @@ function Map() {
             "#ffffff",
           ],
           "circle-opacity": 0.9,
-          "circle-radius": 8,
+          "circle-radius": 6,
         },
       });
 
-      map.addLayer({
-        id: "building-status-label",
-        type: "symbol",
-        source: "allBuildings",
-        filter: ["!=", "cluster", true],
-        layout: {
-          "text-field": [
-            "format",
-            ["upcase", ["get", "retrofit_status"]],
-            {
-              "font-scale": 0.6,
-              "text-font": ["literal", ["Klokantech Noto Sans Regular"]],
-            },
-          ],
-        },
-      });
-
-      let markers = {};
-      let markersOnScreen = {};
+      let markers = {} as any;
+      let markersOnScreen = {} as any;
 
       function updateMarkers() {
-        const newMarkers = {};
+        const newMarkers = {} as any;
         const features = map.querySourceFeatures("allBuildings");
 
         for (let i = 0; i < features.length; i++) {
-          const coords = features[i].geometry.coordinates;
+          const point = features[i].geometry as Point;
+          const coords = point.coordinates as [number, number];
           const props = features[i].properties;
           if (!props.cluster) continue;
           let id = props.cluster_id;
@@ -278,7 +277,7 @@ function Map() {
           if (!marker) {
             const el = createDonutChart(props);
             marker = markers[id] = new maplibregl.Marker({
-              element: el,
+              element: el as HTMLElement,
             }).setLngLat(coords);
           }
           newMarkers[id] = marker;
@@ -293,7 +292,7 @@ function Map() {
       }
 
       // after the GeoJSON data is loaded, update markers on the screen and do so on every map move/moveend
-      map.on("data", function (e) {
+      map.on("sourcedata", function (e) {
         if (e.sourceId !== "allBuildings" || !e.isSourceLoaded) return;
 
         map.on("move", updateMarkers);
@@ -302,15 +301,22 @@ function Map() {
       });
 
       map.on("click", "building-circle", function (e) {
-        const coordinates = e.features[0].geometry.coordinates.slice();
-        const info = getFormattedInfo(e.features[0].properties);
-        console.log(info);
+        if (e.features && e.features.length > 0) {
+          const point = e.features[0].geometry as Point;
+          const coordinates = point.coordinates as [number, number];
+          const info = getFormattedInfo(e.features[0].properties);
 
-        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+          }
+
+          if (info) {
+            new maplibregl.Popup()
+              .setLngLat(coordinates)
+              .setHTML(info)
+              .addTo(map);
+          }
         }
-
-        new maplibregl.Popup().setLngLat(coordinates).setHTML(info).addTo(map);
       });
 
       map.on("mouseenter", "building-circle", function () {

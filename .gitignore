@@ -3,9 +3,13 @@ nextjs/.next
 nextjs/public
 nextjs/.log
 
+*/node_modules
+*/public
+*/build
+
 db/.log
 db/deprecated/*
 db/data/*
 
 *.pmtiles
-*.env
+*.env*
