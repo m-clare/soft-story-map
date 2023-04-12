@@ -153,7 +153,7 @@ function donutSegment(
 function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const mapFile = new PMTiles(process.env.PUBLIC_URL + "/so_cal.pmtiles");
+  const mapFile = new PMTiles("/soft-stories/so_cal.pmtiles");
 
   useEffect(() => {
     let protocol = new Protocol();
@@ -162,7 +162,7 @@ function Map() {
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current!,
-      zoom: 14,
+      zoom: 5,
       center: [-118.243683, 34.052235],
       maxBounds: [-118.951721, 32.75004, -117.646374, 34.823302],
       pitch: 30,
@@ -180,7 +180,7 @@ function Map() {
           },
         },
         layers: maptiler3dGl.layers as LayerSpecification[],
-        glyphs: process.env.PUBLIC_URL + "/{fontstack}/{range}.pbf",
+        glyphs: "/soft-stories/{fontstack}/{range}.pbf",
       },
     });
     mapRef.current = map;
