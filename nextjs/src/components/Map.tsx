@@ -162,7 +162,7 @@ function Map() {
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current!,
-      zoom: 14,
+      zoom: 5,
       center: [-118.243683, 34.052235],
       maxBounds: [-118.951721, 32.75004, -117.646374, 34.823302],
       pitch: 30,

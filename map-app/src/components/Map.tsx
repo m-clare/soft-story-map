@@ -48,12 +48,12 @@ function createDonutChart(props: any) {
     total += counts[i];
   }
 
-  const fontSize = total > 400 ? 22 : total >= 100 ? 18 : total >= 10 ? 14 : 10;
+  const fontSize = total > 10000 ? 22 : total >= 1000 ? 20 : total >= 100 ? 18 : total >= 10 ? 14 : 10;
   const radius =
-    total > 1000
+    total > 10000
+      ? 70
+    :total >= 1000
       ? 60
-      : total > 400
-      ? 40
       : total >= 100
       ? 30
       : total >= 10
@@ -92,7 +92,7 @@ function createDonutChart(props: any) {
     radius +
     '" r="' +
     r0 +
-    '" fill="white" /><text dominant-baseline="central" transform="translate(' +
+    '" fill="white" opacity="0.7"/><text font-family="Noto Sans" font-weight=700 dominant-baseline="central" transform="translate(' +
     radius +
     ", " +
     radius +
@@ -146,7 +146,7 @@ function donutSegment(
     0,
     r + r0 * x0,
     r + r0 * y0,
-    '" fill="' + color + '" />',
+    '" fill="' + color + '" opacity="0.7"/>',
   ].join(" ");
 }
 
@@ -162,12 +162,11 @@ function Map() {
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current!,
-      zoom: 5,
       center: [-118.243683, 34.052235],
-      maxBounds: [-118.951721, 32.75004, -117.646374, 34.823302],
-      pitch: 30,
-      bearing: -0.44200633613297663,
-      minZoom: 5,
+      pitch: 20,
+      zoom: 8.2,
+      maxBounds: [[-120, 32],[-116,36]],
+      minZoom: 8.2,
       maxZoom: 17.9,
       style: {
         version: 8,
@@ -175,7 +174,7 @@ function Map() {
           openmaptiles: {
             type: "vector",
             tiles: ["pmtiles://" + mapFile.source.getKey() + "/{z}/{x}/{y}"],
-            minzoom: 0,
+            minzoom: 6,
             maxzoom: 14,
           },
         },
@@ -215,7 +214,7 @@ function Map() {
         type: "geojson",
         data: allBuildings,
         cluster: true,
-        clusterRadius: 70,
+        clusterRadius: 80,
         clusterMaxZoom: 16,
         clusterProperties: {
           retrofit: ["+", ["case", retrofit, 1, 0]],
@@ -294,7 +293,6 @@ function Map() {
       // after the GeoJSON data is loaded, update markers on the screen and do so on every map move/moveend
       map.on("sourcedata", function (e) {
         if (e.sourceId !== "allBuildings" || !e.isSourceLoaded) return;
-
         map.on("move", updateMarkers);
         map.on("moveend", updateMarkers);
         updateMarkers();

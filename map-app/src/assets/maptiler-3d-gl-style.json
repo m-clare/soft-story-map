@@ -501,7 +501,7 @@
       "layout": {
         "symbol-placement": "line",
         "text-field": "{name}",
-        "text-font": ["Klokantech Noto Sans Regular"],
+        "text-font": ["KlokanTech Noto Sans Regular"],
         "text-letter-spacing": 0.1,
         "text-rotation-alignment": "map",
         "text-size": {"base": 1.4, "stops": [[10, 8], [20, 14]]},
@@ -551,7 +551,7 @@
       "layout": {
         "text-anchor": "center",
         "text-field": "{name_en}",
-        "text-font": ["Klokantech Noto Sans Regular"],
+        "text-font": ["KlokanTech Noto Sans Regular"],
         "text-max-width": 6,
         "text-size": {"stops": [[6, 10], [12, 14]]},
         "visibility": "visible"
@@ -578,7 +578,7 @@
       "layout": {
         "text-anchor": "center",
         "text-field": "{name_en}",
-        "text-font": ["Klokantech Noto Sans Regular"],
+        "text-font": ["KlokanTech Noto Sans Regular"],
         "text-max-width": 6,
         "text-size": {"stops": [[6, 10], [12, 14]]},
         "visibility": "visible"
@@ -605,7 +605,7 @@
       "layout": {
         "text-anchor": "center",
         "text-field": "{name_en}",
-        "text-font": ["Klokantech Noto Sans Regular"],
+        "text-font": ["KlokanTech Noto Sans Regular"],
         "text-max-width": 6,
         "text-size": {"stops": [[6, 10], [12, 14]]},
         "visibility": "visible"
@@ -625,7 +625,7 @@
       "filter": ["all", ["==", "$type", "Point"], ["==", "class", "city"]],
       "layout": {
         "text-field": "{name_en}",
-        "text-font": ["Klokantech Noto Sans Regular"],
+        "text-font": ["KlokanTech Noto Sans Regular"],
         "text-max-width": 10,
         "text-size": {
           "stops": [
