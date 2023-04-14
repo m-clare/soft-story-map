@@ -15,6 +15,13 @@ const colors = {
   retrofitNR: "#fed766",
 };
 
+// const colormap = new (Map as any)([["retrofit", "#2ab7ca"], ["not retrofit", "#fe4a49"], ["retrofit not required", "#fed766"]])
+const colorMap: Map<string, string> = new Map([
+  ["retrofit", "#2ab7ca"],
+  ["not retrofit", "#fe4a49"],
+  ["retrofit not required", "#fed766"],
+]);
+
 function getFormattedInfo(props: any) {
   if (props.retrofit_status === "retrofit") {
     const typedProps = {
@@ -48,11 +55,20 @@ function createDonutChart(props: any) {
     total += counts[i];
   }
 
-  const fontSize = total > 10000 ? 22 : total >= 1000 ? 20 : total >= 100 ? 18 : total >= 10 ? 14 : 10;
+  const fontSize =
+    total > 10000
+      ? 22
+      : total >= 1000
+      ? 20
+      : total >= 100
+      ? 18
+      : total >= 10
+      ? 14
+      : 10;
   const radius =
     total > 10000
       ? 70
-    :total >= 1000
+      : total >= 1000
       ? 60
       : total >= 100
       ? 30
@@ -150,7 +166,7 @@ function donutSegment(
   ].join(" ");
 }
 
-function Map() {
+function MaplibreMap() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const mapFile = new PMTiles("/soft-stories/so_cal.pmtiles");
@@ -165,7 +181,10 @@ function Map() {
       center: [-118.243683, 34.052235],
       pitch: 20,
       zoom: 8.2,
-      maxBounds: [[-120, 32],[-116,36]],
+      maxBounds: [
+        [-120, 32],
+        [-116, 36],
+      ],
       minZoom: 8.2,
       maxZoom: 17.9,
       style: {
@@ -215,7 +234,7 @@ function Map() {
         data: allBuildings,
         cluster: true,
         clusterRadius: 80,
-        clusterMaxZoom: 16,
+        clusterMaxZoom: 14,
         clusterProperties: {
           retrofit: ["+", ["case", retrofit, 1, 0]],
           unretrofit: ["+", ["case", unretrofit, 1, 0]],
@@ -269,19 +288,36 @@ function Map() {
           const point = features[i].geometry as Point;
           const coords = point.coordinates as [number, number];
           const props = features[i].properties;
-          if (!props.cluster) continue;
-          let id = props.cluster_id;
+          let marker, id;
+          if (!props.cluster) {
+            id = features[i].id ?? "";
+            const info = getFormattedInfo(props) ?? "";
+            const popup = new maplibregl.Popup({}).setHTML(info);
 
-          let marker = markers[id];
-          if (!marker) {
-            const el = createDonutChart(props);
-            marker = markers[id] = new maplibregl.Marker({
-              element: el as HTMLElement,
-            }).setLngLat(coords);
+            marker = markers[id];
+            if (!marker) {
+              marker = markers[id] = new maplibregl.Marker({
+                color: colorMap.get(props.retrofit_status) ?? "#ffffff",
+              })
+                .setLngLat(coords)
+                .setPopup(popup)
+                .addTo(map);
+            }
+            newMarkers[id] = marker;
+          } else {
+            id = props.cluster_id;
+
+            marker = markers[id];
+            if (!marker) {
+              const el = createDonutChart(props);
+              marker = markers[id] = new maplibregl.Marker({
+                element: el as HTMLElement,
+              }).setLngLat(coords);
+            }
+            newMarkers[id] = marker;
           }
-          newMarkers[id] = marker;
 
-          if (!markersOnScreen[id]) marker.addTo(map);
+          if (id && marker && !markersOnScreen[id]) marker.addTo(map);
         }
 
         for (const id in markersOnScreen) {
@@ -296,33 +332,6 @@ function Map() {
         map.on("move", updateMarkers);
         map.on("moveend", updateMarkers);
         updateMarkers();
-      });
-
-      map.on("click", "building-circle", function (e) {
-        if (e.features && e.features.length > 0) {
-          const point = e.features[0].geometry as Point;
-          const coordinates = point.coordinates as [number, number];
-          const info = getFormattedInfo(e.features[0].properties);
-
-          while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-          }
-
-          if (info) {
-            new maplibregl.Popup()
-              .setLngLat(coordinates)
-              .setHTML(info)
-              .addTo(map);
-          }
-        }
-      });
-
-      map.on("mouseenter", "building-circle", function () {
-        map.getCanvas().style.cursor = "pointer";
-      });
-
-      map.on("mouseleave", "building-circle", function () {
-        map.getCanvas().style.cursor = "";
       });
     });
 
@@ -339,4 +348,4 @@ function Map() {
   );
 }
 
-export default Map;
+export default MaplibreMap;

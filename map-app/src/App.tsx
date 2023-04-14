@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from "./styles/Home.module.css"
-import Map from "./components/Map";
+import MaplibreMap from "./components/Map";
 
 function App() {
   return (
@@ -9,7 +9,7 @@ function App() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </header>
       <main className={styles.main}>
-        <Map />
+        <MaplibreMap />
       </main>
     </div>
   );
