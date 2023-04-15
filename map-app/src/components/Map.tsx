@@ -50,9 +50,9 @@ function createDonutChart(props: any) {
 
   const fontSize =
     total > 10000
-      ? 22
-      : total >= 1000
       ? 20
+      : total >= 1000
+      ? 18
       : total >= 100
       ? 18
       : total >= 10
@@ -60,9 +60,9 @@ function createDonutChart(props: any) {
       : 10;
   const radius =
     total > 10000
-      ? 70
+      ? 65
       : total >= 1000
-      ? 60
+      ? 50
       : total >= 100
       ? 30
       : total >= 10
@@ -173,12 +173,12 @@ function MaplibreMap() {
       container: mapContainerRef.current!,
       center: [-118.243683, 34.052235],
       pitch: 20,
-      zoom: 8.2,
+      zoom: 8.6,
       maxBounds: [
         [-120, 32],
         [-116, 36],
       ],
-      minZoom: 8.2,
+      minZoom: 8.6,
       maxZoom: 17.9,
       style: {
         version: 8,
