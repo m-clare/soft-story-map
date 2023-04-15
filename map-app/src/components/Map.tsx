@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import maplibregl from "maplibre-gl";
 import { PMTiles, Protocol } from "pmtiles";
 import { ExpressionSpecification, LayerSpecification } from "maplibre-gl";
@@ -160,6 +160,7 @@ function donutSegment(
 }
 
 function MaplibreMap() {
+  const [selectedMarkerData, setSelectedMarkerData] = useState({});
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const mapFile = new PMTiles("/soft-stories/so_cal.pmtiles");
@@ -222,17 +223,104 @@ function MaplibreMap() {
         data: retrofitFootprints,
       });
 
-      map.addSource("allBuildings", {
-        type: "geojson",
-        data: allBuildings,
-        cluster: true,
-        clusterRadius: 80,
-        clusterMaxZoom: 14,
-        clusterProperties: {
-          retrofit: ["+", ["case", retrofit, 1, 0]],
-          unretrofit: ["+", ["case", unretrofit, 1, 0]],
-          retrofitNR: ["+", ["case", retrofitNR, 1, 0]],
-        },
+      map.loadImage("/soft-stories/marker-sdf.png", function (error, image) {
+        if (error) throw error;
+        map.addImage("custom-marker", image, { sdf: true });
+
+        map.addSource("allBuildings", {
+          type: "geojson",
+          data: allBuildings,
+          cluster: true,
+          clusterRadius: 80,
+          clusterMaxZoom: 14,
+          clusterProperties: {
+            retrofit: ["+", ["case", retrofit, 1, 0]],
+            unretrofit: ["+", ["case", unretrofit, 1, 0]],
+            retrofitNR: ["+", ["case", retrofitNR, 1, 0]],
+          },
+        });
+
+        let markers = {} as any;
+        let markersOnScreen = {} as any;
+
+        function updateMarkers() {
+          const newMarkers = {} as any;
+          const features = map.querySourceFeatures("allBuildings");
+
+          for (let i = 0; i < features.length; i++) {
+            const point = features[i].geometry as Point;
+            const coords = point.coordinates as [number, number];
+            const props = features[i].properties;
+            let marker, id;
+            if (!props.cluster) {
+              continue;
+              // id = features[i].id ?? "";
+              // const info = getFormattedInfo(props) ?? "";
+              // const popup = new maplibregl.Popup({}).setHTML(info);
+
+              // marker = markers[id];
+              // if (!marker) {
+              //   marker = markers[id] = new maplibregl.Marker({
+              //     color: colorMap.get(props.retrofit_status) ?? "#ffffff",
+              //   })
+              //     .setLngLat(coords)
+              //     .setPopup(popup)
+              //     .addTo(map);
+              // }
+              // newMarkers[id] = marker;
+            } else {
+              id = props.cluster_id;
+
+              marker = markers[id];
+              if (!marker) {
+                const el = createDonutChart(props);
+                marker = markers[id] = new maplibregl.Marker({
+                  element: el as HTMLElement,
+                }).setLngLat(coords);
+              }
+              newMarkers[id] = marker;
+            }
+
+            if (id && marker && !markersOnScreen[id]) marker.addTo(map);
+          }
+
+          for (const id in markersOnScreen) {
+            if (!newMarkers[id]) markersOnScreen[id].remove();
+          }
+          markersOnScreen = newMarkers;
+        }
+
+        // after the GeoJSON data is loaded, update markers on the screen and do so on every map move/moveend
+        map.on("sourcedata", function (e) {
+          if (e.sourceId !== "allBuildings" || !e.isSourceLoaded) return;
+          map.on("move", updateMarkers);
+          map.on("moveend", updateMarkers);
+          updateMarkers();
+        });
+
+        map.addLayer({
+          id: "building-marker",
+          type: "symbol",
+          source: "allBuildings",
+          filter: ["!=", "cluster", true],
+          layout: {
+            "icon-image": "custom-marker",
+            "icon-size": 0.4,
+            "icon-anchor": "bottom",
+          },
+          paint: {
+            "icon-color": [
+              "case",
+              retrofit,
+              colorMap.get("retrofit")!,
+              unretrofit,
+              colorMap.get("not retrofit")!,
+              retrofitNR,
+              colorMap.get("retrofit not required")!,
+              "#ffffff",
+            ],
+          },
+        });
       });
 
       map.addLayer(
@@ -248,84 +336,6 @@ function MaplibreMap() {
         },
         "building-3d"
       );
-
-      map.addLayer({
-        id: "building-circle",
-        type: "circle",
-        source: "allBuildings",
-        filter: ["!=", "cluster", true],
-        paint: {
-          "circle-color": [
-            "case",
-            retrofit,
-            colorMap.get("retrofit")!,
-            unretrofit,
-            colorMap.get("not retrofit")!,
-            retrofitNR,
-            colorMap.get("retrofit not required")!,
-            "#ffffff",
-          ],
-          "circle-opacity": 0.9,
-          "circle-radius": 6,
-        },
-      });
-
-      let markers = {} as any;
-      let markersOnScreen = {} as any;
-
-      function updateMarkers() {
-        const newMarkers = {} as any;
-        const features = map.querySourceFeatures("allBuildings");
-
-        for (let i = 0; i < features.length; i++) {
-          const point = features[i].geometry as Point;
-          const coords = point.coordinates as [number, number];
-          const props = features[i].properties;
-          let marker, id;
-          if (!props.cluster) {
-            id = features[i].id ?? "";
-            const info = getFormattedInfo(props) ?? "";
-            const popup = new maplibregl.Popup({}).setHTML(info);
-
-            marker = markers[id];
-            if (!marker) {
-              marker = markers[id] = new maplibregl.Marker({
-                color: colorMap.get(props.retrofit_status) ?? "#ffffff",
-              })
-                .setLngLat(coords)
-                .setPopup(popup)
-                .addTo(map);
-            }
-            newMarkers[id] = marker;
-          } else {
-            id = props.cluster_id;
-
-            marker = markers[id];
-            if (!marker) {
-              const el = createDonutChart(props);
-              marker = markers[id] = new maplibregl.Marker({
-                element: el as HTMLElement,
-              }).setLngLat(coords);
-            }
-            newMarkers[id] = marker;
-          }
-
-          if (id && marker && !markersOnScreen[id]) marker.addTo(map);
-        }
-
-        for (const id in markersOnScreen) {
-          if (!newMarkers[id]) markersOnScreen[id].remove();
-        }
-        markersOnScreen = newMarkers;
-      }
-
-      // after the GeoJSON data is loaded, update markers on the screen and do so on every map move/moveend
-      map.on("sourcedata", function (e) {
-        if (e.sourceId !== "allBuildings" || !e.isSourceLoaded) return;
-        map.on("move", updateMarkers);
-        map.on("moveend", updateMarkers);
-        updateMarkers();
-      });
     });
 
     return () => {
