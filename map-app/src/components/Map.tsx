@@ -9,12 +9,6 @@ import maptiler3dGl from "../assets/maptiler-3d-gl-style.json";
 import retrofitFootprints from "../assets/230409_retrofit_footprints.json";
 import allBuildings from "../assets/allBuildings.json";
 
-const colors = {
-  retrofit: "#2ab7ca",
-  unretrofit: "#fe4a49",
-  retrofitNR: "#fed766",
-};
-
 const colorMap: Map<string, string> = new Map([
   ["retrofit", "#2ab7ca"],
   ["not retrofit", "#fe4a49"],
@@ -29,17 +23,17 @@ function getFormattedInfo(props: any) {
       status_date: Date.parse(props.status_date),
     };
     return `<div>
-      <h3>${typedProps.status}</h3>
+      <h3>${typedProps.address}</h3>
     </div>`;
   }
   if (props.retrofit_status === "not retrofit") {
     return `<div>
-      <h3>Matched geocode address: ${props.match_address}</h3>
+      <h3>Matched geocode address: ${props.address}</h3>
     </div>`;
   }
   if (props.retrofit_status === "retrofit not required") {
     return `<div>
-      <h3>${props.status}</h3>
+      <h3>${props.address}</h3>
     </div>`;
   }
   return null;
@@ -96,7 +90,7 @@ function createDonutChart(props: any) {
       (offsets[i] + counts[i]) / total,
       radius,
       r0,
-      Object.values(colors)[i]
+      Array.from(colorMap.values())[i]
     );
   }
 
@@ -264,11 +258,11 @@ function MaplibreMap() {
           "circle-color": [
             "case",
             retrofit,
-            colors.retrofit,
+            colorMap.get("retrofit")!,
             unretrofit,
-            colors.unretrofit,
+            colorMap.get("not retrofit")!,
             retrofitNR,
-            colors.retrofitNR,
+            colorMap.get("retrofit not required")!,
             "#ffffff",
           ],
           "circle-opacity": 0.9,
