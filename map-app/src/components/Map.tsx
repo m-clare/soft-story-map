@@ -15,7 +15,6 @@ const colors = {
   retrofitNR: "#fed766",
 };
 
-// const colormap = new (Map as any)([["retrofit", "#2ab7ca"], ["not retrofit", "#fe4a49"], ["retrofit not required", "#fed766"]])
 const colorMap: Map<string, string> = new Map([
   ["retrofit", "#2ab7ca"],
   ["not retrofit", "#fe4a49"],

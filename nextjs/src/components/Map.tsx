@@ -8,6 +8,7 @@ import styles from "@/styles/Home.module.css";
 import { maptiler3dGl } from "@/styles/maptiler-3d-gl";
 import retrofitFootprints from "../assets/230409_retrofit_footprints.json";
 import allBuildings from "../assets/allBuildings.json";
+import styles from "../styles/Home.module.css";
 
 const colors = {
   retrofit: "#2ab7ca",
