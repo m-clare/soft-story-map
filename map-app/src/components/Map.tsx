@@ -180,7 +180,7 @@ function MaplibreMap() {
         [-116, 36],
       ],
       minZoom: 8.6,
-      maxZoom: 17.9,
+      maxZoom: 19.9,
       style: {
         version: 8,
         sources: {
@@ -223,9 +223,23 @@ function MaplibreMap() {
         data: retrofitFootprints,
       });
 
+      map.addLayer(
+        {
+          id: "matched-footprints",
+          type: "fill",
+          source: "retrofitFootprints",
+          minzoom: 8,
+          paint: {
+            "fill-color": "#24939e",
+            "fill-opacity": 0.8,
+          },
+        },
+        "building-3d"
+      );
+
       map.loadImage("/soft-stories/marker-sdf.png", function (error, image) {
         if (error) throw error;
-        map.addImage("custom-marker", image, { sdf: true });
+        map.addImage("custom-marker", image as ImageBitmap, { sdf: true });
 
         map.addSource("allBuildings", {
           type: "geojson",
@@ -307,6 +321,7 @@ function MaplibreMap() {
             "icon-image": "custom-marker",
             "icon-size": 0.4,
             "icon-anchor": "bottom",
+            "icon-allow-overlap": true,
           },
           paint: {
             "icon-color": [
@@ -321,21 +336,15 @@ function MaplibreMap() {
             ],
           },
         });
-      });
 
-      map.addLayer(
-        {
-          id: "matched-footprints",
-          type: "fill",
-          source: "retrofitFootprints",
-          minzoom: 8,
-          paint: {
-            "fill-color": "#24939e",
-            "fill-opacity": 0.8,
-          },
-        },
-        "building-3d"
-      );
+        map.on("mouseenter", "building-marker", function (e) {
+          map.getCanvas().style.cursor = "pointer";
+        });
+
+        map.on("mouseleave", "building-marker", function (e) {
+          map.getCanvas().style.cursor = "";
+        });
+      });
     });
 
     return () => {
