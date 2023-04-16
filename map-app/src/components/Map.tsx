@@ -161,9 +161,12 @@ function donutSegment(
 
 function MaplibreMap() {
   const [selectedMarkerData, setSelectedMarkerData] = useState({});
+  const [hudVisible, setHudVisible] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const mapFile = new PMTiles("/soft-stories/so_cal.pmtiles");
+
+  console.log(selectedMarkerData);
 
   useEffect(() => {
     let protocol = new Protocol();
@@ -265,36 +268,18 @@ function MaplibreMap() {
             const point = features[i].geometry as Point;
             const coords = point.coordinates as [number, number];
             const props = features[i].properties;
-            let marker, id;
-            if (!props.cluster) {
-              continue;
-              // id = features[i].id ?? "";
-              // const info = getFormattedInfo(props) ?? "";
-              // const popup = new maplibregl.Popup({}).setHTML(info);
+            let marker;
+            if (!props.cluster) continue;
+            const id = props.cluster_id;
 
-              // marker = markers[id];
-              // if (!marker) {
-              //   marker = markers[id] = new maplibregl.Marker({
-              //     color: colorMap.get(props.retrofit_status) ?? "#ffffff",
-              //   })
-              //     .setLngLat(coords)
-              //     .setPopup(popup)
-              //     .addTo(map);
-              // }
-              // newMarkers[id] = marker;
-            } else {
-              id = props.cluster_id;
-
-              marker = markers[id];
-              if (!marker) {
-                const el = createDonutChart(props);
-                marker = markers[id] = new maplibregl.Marker({
-                  element: el as HTMLElement,
-                }).setLngLat(coords);
-              }
-              newMarkers[id] = marker;
+            marker = markers[id];
+            if (!marker) {
+              const el = createDonutChart(props);
+              marker = markers[id] = new maplibregl.Marker({
+                element: el as HTMLElement,
+              }).setLngLat(coords);
             }
-
+            newMarkers[id] = marker;
             if (id && marker && !markersOnScreen[id]) marker.addTo(map);
           }
 
@@ -344,6 +329,18 @@ function MaplibreMap() {
         map.on("mouseleave", "building-marker", function (e) {
           map.getCanvas().style.cursor = "";
         });
+
+        map.on("click", function (e) {
+          const features = map.queryRenderedFeatures(e.point);
+          const feature = features[0] ?? null;
+          if (feature && feature.layer.id === "building-marker") {
+            setSelectedMarkerData(feature.properties);
+            setHudVisible(true);
+          } else {
+            setSelectedMarkerData({});
+            setHudVisible(false);
+          }
+        });
       });
     });
 
@@ -352,6 +349,8 @@ function MaplibreMap() {
     };
     // eslint-disable-next-line
   }, []);
+
+  useEffect(() => {}, [selectedMarkerData]);
 
   return (
     <div ref={mapContainerRef} className={styles.mapContainer}>

@@ -14,8 +14,16 @@ function Header() {
     >
       <AppBar sx={{ backgroundColor: "statusColor.retrofit" }}>
         <Container maxWidth="lg">
-          <Toolbar><Box sx={{flexGrow: 1, flexDirection: "column", gap: 0}}><Typography variant="h6" fontWeight={'700'}>Los Angeles Buildings </Typography>
-          <Typography variant="caption"> Identified and Retrofitted Soft Stories</Typography></Box></Toolbar>
+          <Toolbar>
+            <Box sx={{ flexGrow: 1, flexDirection: "column", gap: 0 }}>
+              <Typography variant="h6" fontWeight={"700"}>
+                Los Angeles Buildings
+              </Typography>
+              <Typography variant="caption">
+                Identified and Retrofitted Soft Stories
+              </Typography>
+            </Box>
+          </Toolbar>
         </Container>
       </AppBar>
     </Box>
