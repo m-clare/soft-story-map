@@ -6,8 +6,6 @@ import { Point } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "../styles/Home.module.css";
 import maptiler3dGl from "../assets/maptiler-3d-gl-style.json";
-import retrofitFootprints from "../assets/230409_retrofit_footprints.json";
-import allBuildings from "../assets/allBuildings.json";
 
 const colorMap: Map<string, string> = new Map([
   ["retrofit", "#2ab7ca"],
@@ -161,12 +159,24 @@ function donutSegment(
 
 function MaplibreMap() {
   const [selectedMarkerData, setSelectedMarkerData] = useState({});
+  const [allBuildings, setAllBuildings] = useState<object | null>(null);
+  const [retrofitFootprints, setFootprints] = useState<object | null>(null);
   const [hudVisible, setHudVisible] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const mapFile = new PMTiles("/soft-stories/so_cal.pmtiles");
 
-  console.log(selectedMarkerData);
+  useEffect(() => {
+    async function loadLayer(dataType: string, filename: string) {
+      const response = await fetch(`/soft-stories/${filename}`);
+      const data = await response.json();
+      if (dataType === "allBuildings") setAllBuildings(data);
+      if (dataType === "retrofitFootprints") setFootprints(data);
+    }
+
+    loadLayer("allBuildings", "allBuildings.json");
+    loadLayer("retrofitFootprints", "230409_retrofit_footprints.json");
+  }, []);
 
   useEffect(() => {
     let protocol = new Protocol();
@@ -348,7 +358,7 @@ function MaplibreMap() {
       map.remove();
     };
     // eslint-disable-next-line
-  }, []);
+  }, [allBuildings, retrofitFootprints]);
 
   useEffect(() => {}, [selectedMarkerData]);
 
