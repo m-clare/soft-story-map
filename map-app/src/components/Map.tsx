@@ -6,6 +6,7 @@ import { Point } from "geojson";
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "../styles/Home.module.css";
 import maptiler3dGl from "../assets/maptiler-3d-gl-style.json";
+import HUD from "./HUD";
 
 const colorMap: Map<string, string> = new Map([
   ["retrofit", "#2ab7ca"],
@@ -281,7 +282,6 @@ function MaplibreMap() {
             let marker;
             if (!props.cluster) continue;
             const id = props.cluster_id;
-
             marker = markers[id];
             if (!marker) {
               const el = createDonutChart(props);
@@ -342,8 +342,20 @@ function MaplibreMap() {
 
         map.on("click", function (e) {
           const features = map.queryRenderedFeatures(e.point);
-          const feature = features[0] ?? null;
-          if (feature && feature.layer.id === "building-marker") {
+          const feature =
+            features.filter(
+              (feature) => feature.layer.id === "building-marker"
+            )[0] ?? null;
+          if (feature) {
+            const point = feature.geometry as Point;
+            const coords = point.coordinates as [number, number];
+            const id = feature.properties.id;
+            // const marker = activeMarkers[id] = new maplibregl.Marker({
+            //   color: "#3cd070",
+            //   scale: 1.4,
+            // })
+            //   .setLngLat(coords)
+            //   .addTo(map);
             setSelectedMarkerData(feature.properties);
             setHudVisible(true);
           } else {
@@ -363,9 +375,12 @@ function MaplibreMap() {
   useEffect(() => {}, [selectedMarkerData]);
 
   return (
-    <div ref={mapContainerRef} className={styles.mapContainer}>
-      <div ref={mapContainerRef}></div>
-    </div>
+    <>
+      <div ref={mapContainerRef} className={styles.mapContainer}>
+        <div ref={mapContainerRef}></div>
+      </div>
+      {hudVisible && <HUD />}
+    </>
   );
 }
 
