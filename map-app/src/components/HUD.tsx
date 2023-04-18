@@ -28,12 +28,14 @@ const getStatus = (dbStatus: string) => {
     return "No retrofit permit found in LADBS";
   }
   if (dbStatus === "retrofit not required") {
-    return "Retrofit assessed and not required";
+    return "Retrofit verified or verified is not required";
   }
 };
 
 const HUD = ({ rawData }) => {
   const data = JSON.parse(rawData.data);
+
+  const status = rawData.retrofit_status;
 
   const formattedEntry = (item: any) => {
     return (
@@ -87,37 +89,43 @@ const HUD = ({ rawData }) => {
                 variant="h5"
                 sx={{ fontWeight: 700, fontVariant: "small-caps" }}
               >
-                {rawData.address.split(/\d\d\d\d\d/)[0].toLowerCase()}
+                {rawData.address
+                  .substring(0, rawData.address.length - 6)
+                  .toLowerCase()}
               </Typography>{" "}
               <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {rawData.address.match(/\d\d\d\d\d/)[0]}
+                {rawData.address.substring(rawData.address.length - 6)}
               </Typography>
               <Typography
                 variant="h6"
                 sx={{ fontWeight: 700, fontVariant: "small-caps" }}
               >
-                Status: {getStatus(rawData.retrofit_status)}
+                Status: {getStatus(status)}
               </Typography>
             </div>
-            <div style={{ "padding-bottom": 8 }}>
-              <Typography
-                variant="h6"
-                sx={{ fontVariant: "small-caps", fontWeight: 700 }}
-              >
-                Database Entries
-              </Typography>
-            </div>
+            {status !== "not retrofit" && (
+              <div style={{ paddingBottom: 8 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ fontVariant: "small-caps", fontWeight: 700 }}
+                >
+                  Database Entries
+                </Typography>
+              </div>
+            )}
             <Box
               sx={{
                 maxHeight: "30vh",
                 overflowY: "auto",
               }}
             >
-              {data.map((item, i) => {
+              {data.map((item: object, i: number) => {
                 return (
                   <>
                     {formattedEntry(item)}
-                    {!(i === data.length - 1) && <Divider />}
+                    {!(i === data.length - 1) && (
+                      <Divider sx={{ mx: 0.5, my: 1 }} />
+                    )}
                   </>
                 );
               })}
