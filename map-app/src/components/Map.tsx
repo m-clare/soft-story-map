@@ -372,14 +372,12 @@ function MaplibreMap() {
     // eslint-disable-next-line
   }, [allBuildings, retrofitFootprints]);
 
-  useEffect(() => {}, [selectedMarkerData]);
-
   return (
     <>
       <div ref={mapContainerRef} className={styles.mapContainer}>
         <div ref={mapContainerRef}></div>
       </div>
-      {hudVisible && <HUD />}
+      {hudVisible && <HUD rawData={selectedMarkerData} />}
     </>
   );
 }
