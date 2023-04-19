@@ -40,12 +40,12 @@ function Header() {
                     variant="caption"
                     sx={{ paddingLeft: 1, color: "white" }}
                   >
-                    Soft Stories Retrofits
+                    Soft-Story Retrofits
                   </Typography>
                 </Link>
               </div>
             </Box>
-            <Link href="https://mclare.dev" underline="none" style={{display: "inline-block"}}>
+            <Link href="https://mclare.blog/posts/mapping-los-angeles-soft-story-retrofit-program/" underline="none" style={{display: "inline-block"}}>
               <div style={{position: "relative", paddingRight: 12}}>
               <InfoIcon
                 sx={{

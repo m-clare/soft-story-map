@@ -162,6 +162,7 @@ function donutSegment(
 function MaplibreMap() {
   const [selectedMarkerData, setSelectedMarkerData] = useState({});
   const [allBuildings, setAllBuildings] = useState<object | null>(null);
+  // const [retrofitFootprints, setFootprints] = useState<object | null>(null);
   const [hudVisible, setHudVisible] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -172,9 +173,11 @@ function MaplibreMap() {
       const response = await fetch(`/soft-stories/${filename}`);
       const data = await response.json();
       if (dataType === "allBuildings") setAllBuildings(data);
+      if (dataType === "retrofitFootprints") setFootprints(data);
     }
 
     loadLayer("allBuildings", "allBuildings.json");
+    // loadLayer("retrofitFootprints", "230409_retrofit_footprints.json");
   }, []);
 
   useEffect(() => {
@@ -242,6 +245,25 @@ function MaplibreMap() {
       map.loadImage("/soft-stories/marker-sdf.png", function (error, image) {
         if (error) throw error;
         map.addImage("custom-marker", image as ImageBitmap, { sdf: true });
+
+        // map.addSource("retrofitFootprints", {
+        //   type: "geojson",
+        //   data: retrofitFootprints,
+        // });
+
+        // map.addLayer(
+        //   {
+        //     id: "matched-footprints",
+        //     type: "fill",
+        //     source: "retrofitFootprints",
+        //     minzoom: 8,
+        //     paint: {
+        //       "fill-color": "#24939e",
+        //       "fill-opacity": 0.8,
+        //     },
+        //   },
+        //   "building-3d"
+        // );
 
         map.addSource("allBuildings", {
           type: "geojson",
