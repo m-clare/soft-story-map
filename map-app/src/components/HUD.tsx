@@ -1,7 +1,4 @@
 import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CardHeader from "@mui/material/CardHeader";
 import Container from "@mui/material/Container";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -86,7 +83,8 @@ const HUD = ({ rawData }) => {
             px: 2,
             py: 2,
             maxHeight: "80vh",
-            maxWidth: { sm: "80vw", md: "30vw" },
+            maxWidth: { sm: "60vw", md: "30vw" },
+            borderRadius: "16px",
           }}
         >
           <div>

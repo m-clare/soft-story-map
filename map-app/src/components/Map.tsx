@@ -194,7 +194,7 @@ function MaplibreMap() {
       minZoom: 8.6,
       maxZoom: 19.9,
       maplibreLogo: true,
-      logoPosition: "bottom-right",
+      logoPosition: "bottom-left",
       style: {
         version: 8,
         sources: {
@@ -211,14 +211,14 @@ function MaplibreMap() {
     });
     mapRef.current = map;
 
-    map.addControl(new maplibregl.NavigationControl({}), "bottom-left");
-    // map.addControl(new maplibregl.FullscreenControl(), "b");
     map.addControl(
       new maplibregl.AttributionControl({
         compact: true,
         customAttribution: `<a href="https://protomaps.com">Protomaps</a> | <a href="https://openmaptiles.org">© OpenMapTiles</a> | <a href="http://www.openstreetmap.org/copyright"> © OpenStreetMap contributors</a>`,
-      })
+      }),
+      "bottom-left"
     );
+    map.addControl(new maplibregl.NavigationControl({}), "bottom-right");
 
     const retrofit = [
       "==",
