@@ -7,6 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "../styles/Home.module.css";
 import maptiler3dGl from "../assets/maptiler-3d-gl-style.json";
 import HUD from "./HUD";
+import Legend from "./Legend";
 
 const colorMap: Map<string, string> = new Map([
   ["retrofit", "#2ab7ca"],
@@ -365,6 +366,7 @@ function MaplibreMap() {
         <div ref={mapContainerRef}></div>
       </div>
       {hudVisible && <HUD rawData={selectedMarkerData} />}
+      <Legend />
     </>
   );
 }
