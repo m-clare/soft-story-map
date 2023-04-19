@@ -3,6 +3,7 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardHeader from "@mui/material/CardHeader";
 import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
@@ -71,69 +72,73 @@ const HUD = ({ rawData }) => {
     );
   };
   return (
-    <Box sx={{ flexGrow: 1, width: "100%" }}>
-      <Container maxWidth="lg">
-        <Box
+    <Container maxWidth="lg">
+      <Box
+        sx={{
+          position: "absolute",
+          marginLeft: 3,
+          marginRight: 3,
+          top: 80,
+        }}
+      >
+        <Paper
           sx={{
-            position: "absolute",
-            minWidth: "50vw",
-            maxWidth: { md: "50vw", sm: "80vw" },
-            top: 80,
-            left: 56,
-            right: 56,
+            opacity: 0.8,
+            px: 2,
+            py: 2,
+            maxHeight: "80vh",
+            maxWidth: { sm: "80vw", md: "30vw" },
           }}
         >
-          <Paper square sx={{ opacity: 0.8, px: 2, py: 2, maxHeight: "80vh" }}>
-            <div>
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 700, fontVariant: "small-caps" }}
-              >
-                {rawData.address
-                  .substring(0, rawData.address.length - 6)
-                  .toLowerCase()}
-              </Typography>{" "}
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {rawData.address.substring(rawData.address.length - 6)}
-              </Typography>
+          <div>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: 700, fontVariant: "small-caps" }}
+            >
+              {rawData.address
+                .substring(0, rawData.address.length - 6)
+                .toLowerCase()}
+            </Typography>{" "}
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              {rawData.address.substring(rawData.address.length - 6)}
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 700, fontVariant: "small-caps" }}
+            >
+              Status: {getStatus(status)}
+            </Typography>
+          </div>
+          {status !== "not retrofit" && (
+            <div style={{ paddingBottom: 8 }}>
               <Typography
                 variant="h6"
-                sx={{ fontWeight: 700, fontVariant: "small-caps" }}
+                sx={{ fontVariant: "small-caps", fontWeight: 700 }}
               >
-                Status: {getStatus(status)}
+                Database Entries
               </Typography>
             </div>
-            {status !== "not retrofit" && (
-              <div style={{ paddingBottom: 8 }}>
-                <Typography
-                  variant="h6"
-                  sx={{ fontVariant: "small-caps", fontWeight: 700 }}
-                >
-                  Database Entries
-                </Typography>
-              </div>
-            )}
-            <Box
-              sx={{
-                maxHeight: "30vh",
-                overflowY: "auto",
-              }}
-            >
-              {data.map((item: object, i: number) => {
-                return (
-                  <>
-                    {formattedEntry(item)}
-                    {!(i === data.length - 1) && (
-                      <Divider sx={{ mx: 0.5, my: 1 }} />
-                    )}
-                  </>
-                );
-              })}
-            </Box>
-          </Paper>
-        </Box>
-      </Container>
-    </Box>
+          )}
+          <Box
+            sx={{
+              maxHeight: "30vh",
+              overflowY: "auto",
+            }}
+          >
+            {data.map((item: object, i: number) => {
+              return (
+                <>
+                  {formattedEntry(item)}
+                  {!(i === data.length - 1) && (
+                    <Divider sx={{ mx: 0.5, my: 1 }} />
+                  )}
+                </>
+              );
+            })}
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 
